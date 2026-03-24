@@ -189,7 +189,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="text-center py-8 text-sm text-gray-400 mt-8">
-        <p>© {new Date().getFullYear()} BGRemover · Free AI-powered background removal</p>
+        <p suppressHydrationWarning>© {new Date().getFullYear()} BGRemover · Free AI-powered background removal</p>
       </footer>
     </main>
   );
