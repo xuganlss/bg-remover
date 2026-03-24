@@ -7,29 +7,37 @@ import BackgroundColorPicker from '@/components/BackgroundColorPicker';
 
 type Status = 'idle' | 'processing' | 'done' | 'error';
 
+const REMOVE_BG_API_KEY = process.env.NEXT_PUBLIC_REMOVE_BG_API_KEY || '';
+
 export default function Home() {
   const [status, setStatus] = useState<Status>('idle');
   const [originalUrl, setOriginalUrl] = useState<string>('');
   const [resultUrl, setResultUrl] = useState<string>('');
   const [bgColor, setBgColor] = useState('transparent');
   const [errorMsg, setErrorMsg] = useState('');
-  const [originalFile, setOriginalFile] = useState<File | null>(null);
 
   const handleImageSelect = useCallback(async (file: File, previewUrl: string) => {
-    setOriginalFile(file);
     setOriginalUrl(previewUrl);
     setStatus('processing');
     setErrorMsg('');
 
     const form = new FormData();
-    form.append('image', file);
+    form.append('image_file', file);
+    form.append('size', 'auto');
 
     try {
-      const res = await fetch('/api/remove-bg', { method: 'POST', body: form });
+      const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+        method: 'POST',
+        headers: { 'X-Api-Key': REMOVE_BG_API_KEY },
+        body: form,
+      });
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to remove background');
+        const msg = data?.errors?.[0]?.title || 'Background removal failed';
+        throw new Error(msg);
       }
+
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
@@ -45,7 +53,6 @@ export default function Home() {
     setOriginalUrl('');
     setResultUrl('');
     setErrorMsg('');
-    setOriginalFile(null);
     setBgColor('transparent');
   };
 
@@ -133,10 +140,8 @@ export default function Home() {
           {status === 'done' && resultUrl && originalUrl && (
             <div className="space-y-6">
               <ImageComparison originalUrl={originalUrl} resultUrl={resultUrl} bgColor={bgColor} />
-
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2">
                 <BackgroundColorPicker value={bgColor} onChange={setBgColor} />
-
                 <div className="flex gap-3">
                   <button
                     onClick={handleReset}
@@ -172,7 +177,7 @@ export default function Home() {
         </div>
 
         {/* SEO Content */}
-        <section className="mt-16 prose prose-gray max-w-none">
+        <section className="mt-16 max-w-none">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">How to Remove Image Background</h2>
           <ol className="space-y-2 text-gray-600">
             <li><strong>1. Upload</strong> — Drag & drop or click to upload your JPG, PNG, or WebP image.</li>
