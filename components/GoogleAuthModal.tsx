@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 interface GoogleAuthModalProps {
   onClose: () => void;
@@ -21,30 +21,42 @@ declare global {
           initialize: (config: object) => void;
           renderButton: (el: HTMLElement, config: object) => void;
           prompt: () => void;
+          disableAutoSelect: () => void;
         };
       };
     };
+    handleGoogleCredential: (response: { credential: string }) => void;
   }
 }
 
 const CLIENT_ID = '603003050506-9ai6hifmqun3dv8l0kiabmmacqvk6ugp.apps.googleusercontent.com';
 
 export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalProps) {
+
+  const handleCredential = useCallback((response: { credential: string }) => {
+    try {
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      onSuccess({
+        name: payload.name,
+        email: payload.email,
+        picture: payload.picture,
+      });
+    } catch (e) {
+      console.error('Failed to parse Google credential', e);
+    }
+  }, [onSuccess]);
+
   useEffect(() => {
-    const initGoogle = () => {
-      if (!window.google) return;
+    // 挂到 window 上，确保 Google SDK 能找到回调
+    window.handleGoogleCredential = handleCredential;
+
+    const init = () => {
+      if (!window.google?.accounts?.id) return;
+      window.google.accounts.id.disableAutoSelect();
       window.google.accounts.id.initialize({
         client_id: CLIENT_ID,
-        callback: (response: { credential: string }) => {
-          // 解析 JWT token 获取用户信息
-          const payload = JSON.parse(atob(response.credential.split('.')[1]));
-          onSuccess({
-            name: payload.name,
-            email: payload.email,
-            picture: payload.picture,
-          });
-          onClose();
-        },
+        callback: window.handleGoogleCredential,
+        ux_mode: 'popup',
       });
 
       const btn = document.getElementById('google-signin-btn');
@@ -55,21 +67,24 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
           width: 280,
           text: 'signin_with',
           shape: 'rectangular',
+          locale: 'en',
         });
       }
     };
 
-    // 如果 Google SDK 已加载
-    if (window.google) {
-      initGoogle();
+    if (window.google?.accounts?.id) {
+      init();
     } else {
-      // 等待 SDK 加载完成
-      const script = document.getElementById('google-gsi-script');
-      if (script) {
-        script.addEventListener('load', initGoogle);
-      }
+      // SDK 还没加载完，等它
+      const interval = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(interval);
+          init();
+        }
+      }, 100);
+      return () => clearInterval(interval);
     }
-  }, [onClose, onSuccess]);
+  }, [handleCredential]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
