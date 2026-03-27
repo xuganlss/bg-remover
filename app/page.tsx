@@ -5,7 +5,8 @@ import ImageUploader from '@/components/ImageUploader';
 import ImageComparison from '@/components/ImageComparison';
 import BackgroundColorPicker from '@/components/BackgroundColorPicker';
 import GoogleAuthModal, { GoogleUser } from '@/components/GoogleAuthModal';
-import { ensureUser, incrementUsage } from '@/lib/userService';
+import UpgradeModal from '@/components/UpgradeModal';
+import { ensureUser, checkCredits, consumeCredit } from '@/lib/userService';
 
 type Status = 'idle' | 'processing' | 'done' | 'error';
 
@@ -21,11 +22,21 @@ export default function Home() {
   // Google 登录状态
   const [user, setUser] = useState<GoogleUser | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
 
   const handleImageSelect = useCallback(async (file: File, previewUrl: string) => {
     // 未登录时拦截，弹出登录弹窗
     if (!user) {
       setShowAuthModal(true);
+      return;
+    }
+
+    // 检查额度
+    const { ok, credits: remainingCredits } = await checkCredits(user.sub);
+    setCredits(remainingCredits);
+    if (!ok) {
+      setShowUpgradeModal(true);
       return;
     }
 
@@ -54,9 +65,11 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
       setStatus('done');
-      // 记录使用次数到 Firestore
+      // 扣减一次额度
       if (user?.sub) {
-        incrementUsage(user.sub).catch(console.error);
+        consumeCredit(user.sub)
+          .then(() => setCredits(prev => prev !== null ? prev - 1 : null))
+          .catch(console.error);
       }
     } catch (e: unknown) {
       setStatus('error');
@@ -118,6 +131,11 @@ export default function Home() {
         defer
       />
 
+      {/* 升级弹窗 */}
+      {showUpgradeModal && (
+        <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
+      )}
+
       {/* 登录弹窗 */}
       {showAuthModal && (
         <GoogleAuthModal
@@ -125,9 +143,10 @@ export default function Home() {
           onSuccess={async (u) => {
             setUser(u);
             setShowAuthModal(false);
-            // 用 sub (Google uid) 作为 Firestore 文档 ID
             if (u.sub) {
               await ensureUser(u.sub, { email: u.email, name: u.name, picture: u.picture });
+              const { credits: c } = await checkCredits(u.sub);
+              setCredits(c);
             }
           }}
         />
@@ -149,6 +168,11 @@ export default function Home() {
             {/* 登录/用户信息区 */}
             {user ? (
               <div className="flex items-center gap-2">
+                {credits !== null && (
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
+                    {credits} credits left
+                  </span>
+                )}
                 <img
                   src={user.picture}
                   alt={user.name}
