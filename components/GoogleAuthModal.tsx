@@ -39,11 +39,12 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
 
   const handleCredential = useCallback((response: { credential: string }) => {
     try {
-      // base64url decode (Google JWT uses base64url, not standard base64)
+      // base64url → UTF-8 JSON（支持中文等多字节字符）
       const base64Url = response.credential.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
-      const payload = JSON.parse(atob(padded));
+      const bytes = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+      const payload = JSON.parse(new TextDecoder('utf-8').decode(bytes));
       onSuccess({
         sub: payload.sub,
         name: payload.name,
