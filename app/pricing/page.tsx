@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useAuth } from '@/lib/useAuth';
 
 const faqs = [
   {
@@ -76,6 +79,8 @@ const monthlyPlans = [
 ];
 
 export default function PricingPage() {
+  const { user, credits, signOut } = useAuth();
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Header */}
@@ -92,6 +97,22 @@ export default function PricingPage() {
           <nav className="flex items-center gap-6 text-sm text-gray-600">
             <Link href="/" className="hover:text-purple-600 transition-colors">Home</Link>
             <Link href="/pricing" className="text-purple-600 font-medium">Pricing</Link>
+            {user ? (
+              <div className="flex items-center gap-2">
+                {credits !== null && (
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
+                    {credits} credits left
+                  </span>
+                )}
+                <img src={user.picture} alt={user.name} className="w-7 h-7 rounded-full border border-gray-200" />
+                <span className="text-gray-700 hidden sm:block">{user.name}</span>
+                <button onClick={signOut} className="text-xs text-gray-400 hover:text-gray-600">Sign out</button>
+              </div>
+            ) : (
+              <Link href="/" className="text-sm font-medium text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-lg hover:bg-purple-50">
+                Sign in
+              </Link>
+            )}
           </nav>
         </div>
       </header>

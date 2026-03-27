@@ -7,7 +7,8 @@ import ImageComparison from '@/components/ImageComparison';
 import BackgroundColorPicker from '@/components/BackgroundColorPicker';
 import GoogleAuthModal, { GoogleUser } from '@/components/GoogleAuthModal';
 import UpgradeModal from '@/components/UpgradeModal';
-import { ensureUser, checkCredits, consumeCredit } from '@/lib/userService';
+import { checkCredits, consumeCredit } from '@/lib/userService';
+import { useAuth } from '@/lib/useAuth';
 
 type Status = 'idle' | 'processing' | 'done' | 'error';
 
@@ -21,10 +22,9 @@ export default function Home() {
   const [errorMsg, setErrorMsg] = useState('');
 
   // Google 登录状态
-  const [user, setUser] = useState<GoogleUser | null>(null);
+  const { user, credits, setCredits, signIn, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [credits, setCredits] = useState<number | null>(null);
 
   const handleImageSelect = useCallback(async (file: File, previewUrl: string) => {
     // 未登录时拦截，弹出登录弹窗
@@ -119,7 +119,7 @@ export default function Home() {
   };
 
   const handleSignOut = () => {
-    setUser(null);
+    signOut();
   };
 
   return (
@@ -142,13 +142,8 @@ export default function Home() {
         <GoogleAuthModal
           onClose={() => setShowAuthModal(false)}
           onSuccess={async (u) => {
-            setUser(u);
+            await signIn(u);
             setShowAuthModal(false);
-            if (u.sub) {
-              await ensureUser(u.sub, { email: u.email, name: u.name, picture: u.picture });
-              const { credits: c } = await checkCredits(u.sub);
-              setCredits(c);
-            }
           }}
         />
       )}
