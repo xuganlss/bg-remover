@@ -16,7 +16,7 @@ export interface UserRecord {
 
 const FREE_SIGNUP_CREDITS = 3;
 
-// 用户首次登录时创建记录，已存在则跳过
+// 用户首次登录时创建记录，已存在则跳过；老用户自动补 credits 字段
 export async function ensureUser(uid: string, profile: { email: string; name: string; picture: string }) {
   const ref = doc(db, 'users', uid);
   const snap = await getDoc(ref);
@@ -26,11 +26,17 @@ export async function ensureUser(uid: string, profile: { email: string; name: st
       name: profile.name,
       picture: profile.picture,
       plan: 'free',
-      credits: FREE_SIGNUP_CREDITS,   // 注册送 3 次
+      credits: FREE_SIGNUP_CREDITS,
       usageCount: 0,
       createdAt: serverTimestamp(),
       lastUsedAt: serverTimestamp(),
     });
+  } else {
+    // 老用户兼容：如果没有 credits 字段，补上初始额度
+    const data = snap.data();
+    if (data.credits === undefined) {
+      await updateDoc(ref, { credits: FREE_SIGNUP_CREDITS, plan: 'free' });
+    }
   }
 }
 
