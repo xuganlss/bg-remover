@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Link from 'next/link';
 import ImageUploader from '@/components/ImageUploader';
 import ImageComparison from '@/components/ImageComparison';
 import BackgroundColorPicker from '@/components/BackgroundColorPicker';
@@ -164,6 +165,9 @@ export default function Home() {
               </div>
               <span className="font-bold text-gray-800">BGRemover</span>
             </div>
+            <nav className="hidden sm:flex items-center gap-4 text-sm text-gray-500">
+              <Link href="/pricing" className="hover:text-purple-600 transition-colors font-medium">Pricing</Link>
+            </nav>
 
             {/* 登录/用户信息区 */}
             {user ? (
