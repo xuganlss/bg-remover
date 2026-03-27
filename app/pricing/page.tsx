@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import PayPalButton from '@/components/PayPalButton';
+import SubscriptionButton from '@/components/SubscriptionButton';
 
 const faqs = [
   {
@@ -217,7 +218,9 @@ function PricingSections() {
                   <PayPalButton
                     amount={pack.price.replace('$', '')}
                     credits={pack.credits}
+                    packName={pack.name}
                     userSub={user.sub}
+                    userEmail={user.email}
                     onSuccess={(c) => {
                       setCredits(prev => (prev ?? 0) + c);
                       setSuccessMsg(`🎉 Payment successful! ${c} credits added.`);
@@ -274,15 +277,32 @@ function PricingSections() {
               <ul className={`space-y-2 text-sm my-6 flex-1 ${plan.popular ? 'text-purple-100' : 'text-gray-600'}`}>
                 {plan.features.map(f => <li key={f}>✓ {f}</li>)}
               </ul>
-              <button
-                className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
-                  plan.popular
-                    ? 'bg-white text-purple-600 hover:bg-purple-50'
-                    : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'
-                }`}
-              >
-                Payment coming soon
-              </button>
+              {user ? (
+                <div className="mt-2">
+                  <SubscriptionButton
+                    plan={plan.name.toLowerCase() as 'basic' | 'pro'}
+                    userSub={user.sub}
+                    userEmail={user.email}
+                    onSuccess={(p, subId) => {
+                      const added = p === 'pro' ? 60 : 25;
+                      setCredits(prev => (prev ?? 0) + added);
+                      setSuccessMsg(`🎉 Subscribed to ${p === 'pro' ? 'Pro' : 'Basic'}! ${added} credits added.`);
+                      console.log('Subscription ID:', subId);
+                    }}
+                  />
+                </div>
+              ) : (
+                <Link
+                  href="/"
+                  className={`block w-full py-3 rounded-xl font-semibold text-sm text-center transition-colors ${
+                    plan.popular
+                      ? 'bg-white text-purple-600 hover:bg-purple-50'
+                      : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  Sign in to subscribe
+                </Link>
+              )}
             </div>
           ))}
         </div>
