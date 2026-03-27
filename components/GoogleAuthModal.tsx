@@ -8,7 +8,7 @@ interface GoogleAuthModalProps {
 }
 
 export interface GoogleUser {
-  sub: string;   // Google 用户唯一 ID，用作 Firestore 文档 ID
+  sub: string;
   name: string;
   email: string;
   picture: string;
@@ -23,10 +23,13 @@ declare global {
           renderButton: (el: HTMLElement, config: object) => void;
           prompt: () => void;
           disableAutoSelect: () => void;
+          cancel: () => void;
+        };
+        oauth2: {
+          initTokenClient: (config: object) => { requestAccessToken: () => void };
         };
       };
     };
-    handleGoogleCredential: (response: { credential: string }) => void;
   }
 }
 
@@ -36,7 +39,11 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
 
   const handleCredential = useCallback((response: { credential: string }) => {
     try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      // base64url decode (Google JWT uses base64url, not standard base64)
+      const base64Url = response.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+      const payload = JSON.parse(atob(padded));
       onSuccess({
         sub: payload.sub,
         name: payload.name,
@@ -49,15 +56,12 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
   }, [onSuccess]);
 
   useEffect(() => {
-    // 挂到 window 上，确保 Google SDK 能找到回调
-    window.handleGoogleCredential = handleCredential;
-
     const init = () => {
       if (!window.google?.accounts?.id) return;
       window.google.accounts.id.disableAutoSelect();
       window.google.accounts.id.initialize({
         client_id: CLIENT_ID,
-        callback: handleCredential,  // 直接用闭包，不走 window
+        callback: handleCredential,
         ux_mode: 'popup',
       });
 
@@ -77,7 +81,6 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
     if (window.google?.accounts?.id) {
       init();
     } else {
-      // SDK 还没加载完，等它
       const interval = setInterval(() => {
         if (window.google?.accounts?.id) {
           clearInterval(interval);
@@ -91,7 +94,6 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm mx-4 text-center relative">
-        {/* 关闭按钮 */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -101,7 +103,6 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
           </svg>
         </button>
 
-        {/* 图标 */}
         <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
           <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -115,7 +116,6 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
           <br />No credit card required.
         </p>
 
-        {/* Google 登录按钮容器 */}
         <div className="flex justify-center mb-4">
           <div id="google-signin-btn"></div>
         </div>
