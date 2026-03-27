@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
+import PayPalButton from '@/components/PayPalButton';
 
 const faqs = [
   {
@@ -167,8 +169,16 @@ export default function PricingPage() {
 }
 
 function PricingSections() {
+  const { user, setCredits } = useAuth();
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   return (
     <div>
+      {/* 支付成功提示 */}
+      {successMsg && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl text-center font-medium">
+          {successMsg}
+        </div>
+      )}
       {/* Credit Packs */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-6">
@@ -202,15 +212,30 @@ function PricingSections() {
               <ul className={`space-y-2 text-sm my-6 flex-1 ${pack.popular ? 'text-purple-100' : 'text-gray-600'}`}>
                 {pack.features.map(f => <li key={f}>✓ {f}</li>)}
               </ul>
-              <button
-                className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
-                  pack.popular
-                    ? 'bg-white text-purple-600 hover:bg-purple-50'
-                    : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'
-                }`}
-              >
-                Payment coming soon
-              </button>
+              {user ? (
+                <div className="mt-2">
+                  <PayPalButton
+                    amount={pack.price.replace('$', '')}
+                    credits={pack.credits}
+                    userSub={user.sub}
+                    onSuccess={(c) => {
+                      setCredits(prev => (prev ?? 0) + c);
+                      setSuccessMsg(`🎉 Payment successful! ${c} credits added.`);
+                    }}
+                  />
+                </div>
+              ) : (
+                <Link
+                  href="/"
+                  className={`block w-full py-3 rounded-xl font-semibold text-sm text-center transition-colors ${
+                    pack.popular
+                      ? 'bg-white text-purple-600 hover:bg-purple-50'
+                      : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  Sign in to purchase
+                </Link>
+              )}
             </div>
           ))}
         </div>
