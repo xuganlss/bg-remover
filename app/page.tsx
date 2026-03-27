@@ -5,6 +5,7 @@ import ImageUploader from '@/components/ImageUploader';
 import ImageComparison from '@/components/ImageComparison';
 import BackgroundColorPicker from '@/components/BackgroundColorPicker';
 import GoogleAuthModal, { GoogleUser } from '@/components/GoogleAuthModal';
+import { ensureUser, incrementUsage } from '@/lib/userService';
 
 type Status = 'idle' | 'processing' | 'done' | 'error';
 
@@ -53,6 +54,10 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
       setStatus('done');
+      // 记录使用次数到 Firestore
+      if (user?.sub) {
+        incrementUsage(user.sub).catch(console.error);
+      }
     } catch (e: unknown) {
       setStatus('error');
       setErrorMsg(e instanceof Error ? e.message : 'Something went wrong');
@@ -93,9 +98,13 @@ export default function Home() {
       {showAuthModal && (
         <GoogleAuthModal
           onClose={() => setShowAuthModal(false)}
-          onSuccess={(u) => {
+          onSuccess={async (u) => {
             setUser(u);
             setShowAuthModal(false);
+            // 用 sub (Google uid) 作为 Firestore 文档 ID
+            if (u.sub) {
+              await ensureUser(u.sub, { email: u.email, name: u.name, picture: u.picture });
+            }
           }}
         />
       )}

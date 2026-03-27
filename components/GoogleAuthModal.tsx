@@ -8,6 +8,7 @@ interface GoogleAuthModalProps {
 }
 
 export interface GoogleUser {
+  sub: string;   // Google 用户唯一 ID，用作 Firestore 文档 ID
   name: string;
   email: string;
   picture: string;
@@ -37,6 +38,7 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
     try {
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
       onSuccess({
+        sub: payload.sub,
         name: payload.name,
         email: payload.email,
         picture: payload.picture,
