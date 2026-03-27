@@ -57,7 +57,7 @@ export default function GoogleAuthModal({ onClose, onSuccess }: GoogleAuthModalP
       window.google.accounts.id.disableAutoSelect();
       window.google.accounts.id.initialize({
         client_id: CLIENT_ID,
-        callback: window.handleGoogleCredential,
+        callback: handleCredential,  // 直接用闭包，不走 window
         ux_mode: 'popup',
       });
 
