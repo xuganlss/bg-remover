@@ -6,11 +6,11 @@ import { activateSubscription } from '@/lib/userService';
 
 const PAYPAL_CLIENT_ID = 'AcAPfiyzUv1hoJvvkAnBQJ8mGLOySzXm46KYu3lalmatqbPye-FsxEq1kVt-2YZRUBvhV65UCfdlWRI5';
 
-// PayPal Subscription Plan IDs（在 PayPal 后台创建后填入）
-// Sandbox: Developer Dashboard → Subscriptions → Plans
+// PayPal Subscription Plan IDs (Sandbox)
+// 切换生产时替换为正式 Plan ID
 export const PAYPAL_PLAN_IDS = {
-  basic: process.env.NEXT_PUBLIC_PAYPAL_PLAN_BASIC ?? '',
-  pro: process.env.NEXT_PUBLIC_PAYPAL_PLAN_PRO ?? '',
+  basic: process.env.NEXT_PUBLIC_PAYPAL_PLAN_BASIC ?? 'P-2CN37042J7272960HNHDUIBI',
+  pro: process.env.NEXT_PUBLIC_PAYPAL_PLAN_PRO ?? 'P-18582952CE534212TNHDUIWQ',
 };
 
 interface SubscriptionButtonProps {
