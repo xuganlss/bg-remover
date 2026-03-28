@@ -4,8 +4,7 @@
 	"name": "bg-remover",
 	"compatibility_date": "2026-03-17",
 	"compatibility_flags": [
-		"nodejs_compat",
-		"global_fetch_strictly_public"
+		"nodejs_compat"
 	],
 	"assets": {
 		"directory": ".open-next/assets",
