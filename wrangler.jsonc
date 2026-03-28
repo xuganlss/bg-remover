@@ -21,7 +21,11 @@
 	],
 	"images": {
 		// Enable image optimization
-		// see https://opennext.js.org/cloudflare/howtos/image
+		// see https://opennextjs.org/cloudflare/howtos/image
 		"binding": "IMAGES"
+	},
+	"vars": {
+		"NEXT_PUBLIC_PAYPAL_PLAN_BASIC": "P-2CN37042J7272960HNHDUIBI",
+		"NEXT_PUBLIC_PAYPAL_PLAN_PRO": "P-18582952CE534212TNHDUIWQ"
 	}
 }
