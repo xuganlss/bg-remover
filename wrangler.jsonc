@@ -6,19 +6,5 @@
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
-	"pages_build_output_dir": ".open-next/assets",
-	"assets": {
-		"directory": ".open-next/assets",
-		"binding": "ASSETS"
-	},
-	"services": [
-		{
-			"binding": "WORKER_SELF_REFERENCE",
-			"service": "bg-remover"
-		}
-	],
-	"vars": {
-		"NEXT_PUBLIC_PAYPAL_PLAN_BASIC": "P-2CN37042J7272960HNHDUIBI",
-		"NEXT_PUBLIC_PAYPAL_PLAN_PRO": "P-18582952CE534212TNHDUIWQ"
-	}
+	"pages_build_output_dir": ".open-next/assets"
 }
