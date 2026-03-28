@@ -1,8 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Free Image Background Remover - Remove Background Online | AI Powered',
@@ -12,7 +9,7 @@ export const metadata: Metadata = {
     title: 'Free Image Background Remover — Instant & AI Powered',
     description: 'Remove image backgrounds in seconds for free. Upload any photo and get a clean transparent PNG instantly.',
     type: 'website',
-    url: 'https://bgremover.pages.dev',
+    url: 'https://img-bgremove.susanliu.site',
     images: [
       {
         url: '/og-image.png',
@@ -36,7 +33,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>{children}</body>
     </html>
   )
 }
