@@ -1,29 +1,22 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"main": ".open-next/worker.js",
 	"name": "bg-remover",
 	"compatibility_date": "2026-03-17",
 	"compatibility_flags": [
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
+	"pages_build_output_dir": ".open-next/assets",
 	"assets": {
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
 	"services": [
 		{
-			// Self-reference service binding, the service name must match the worker name
-			// see https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
 			"service": "bg-remover"
 		}
 	],
-	"images": {
-		// Enable image optimization
-		// see https://opennextjs.org/cloudflare/howtos/image
-		"binding": "IMAGES"
-	},
 	"vars": {
 		"NEXT_PUBLIC_PAYPAL_PLAN_BASIC": "P-2CN37042J7272960HNHDUIBI",
 		"NEXT_PUBLIC_PAYPAL_PLAN_PRO": "P-18582952CE534212TNHDUIWQ"
