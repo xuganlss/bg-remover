@@ -27,6 +27,18 @@ jobs:
           NEXT_PUBLIC_PAYPAL_PLAN_BASIC: P-2CN37042J7272960HNHDUIBI
           NEXT_PUBLIC_PAYPAL_PLAN_PRO: P-18582952CE534212TNHDUIWQ
 
+      - name: Set Worker Secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 196f3361ba6da40c48939c5b9bd5ff4a
+        run: |
+          echo "${{ secrets.PAYPAL_CLIENT_ID }}" | npx wrangler secret put PAYPAL_CLIENT_ID
+          echo "${{ secrets.PAYPAL_CLIENT_SECRET }}" | npx wrangler secret put PAYPAL_CLIENT_SECRET
+          echo "${{ secrets.PAYPAL_WEBHOOK_ID }}" | npx wrangler secret put PAYPAL_WEBHOOK_ID
+          echo "${{ secrets.FIREBASE_PROJECT_ID }}" | npx wrangler secret put FIREBASE_PROJECT_ID
+          echo "${{ secrets.FIREBASE_CLIENT_EMAIL }}" | npx wrangler secret put FIREBASE_CLIENT_EMAIL
+          printf '%s' "${{ secrets.FIREBASE_PRIVATE_KEY }}" | npx wrangler secret put FIREBASE_PRIVATE_KEY
+
       - name: Deploy
         run: npx wrangler deploy
         env:
