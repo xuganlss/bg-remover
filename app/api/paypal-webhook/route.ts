@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID!;
-const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL!;
-const FIREBASE_PRIVATE_KEY = process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n');
+const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID ?? '';
+const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL ?? '';
+// 懒加载：构建时不执行 replace，运行时才处理
+function getFirebasePrivateKey() {
+  return (process.env.FIREBASE_PRIVATE_KEY ?? '').replace(/\\n/g, '\n');
+}
 
 // ─── 生成 Firebase JWT access token ──────────────────────────
 async function getFirebaseToken(): Promise<string> {
@@ -23,7 +26,7 @@ async function getFirebaseToken(): Promise<string> {
   const signingInput = `${encode(header)}.${encode(payload)}`;
 
   // 导入私钥
-  const pemBody = FIREBASE_PRIVATE_KEY.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g, '');
+  const pemBody = getFirebasePrivateKey().replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g, '');
   const keyData = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
   const privateKey = await crypto.subtle.importKey(
     'pkcs8', keyData,
