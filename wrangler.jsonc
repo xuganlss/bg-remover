@@ -15,5 +15,8 @@
 			"binding": "WORKER_SELF_REFERENCE",
 			"service": "bg-remover"
 		}
-	]
+	],
+	"unsafe": {
+		"eval": true
+	}
 }
