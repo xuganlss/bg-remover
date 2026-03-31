@@ -174,8 +174,9 @@ export default function Pricing2Page() {
                     <PayPalButton
                       amount={pack.price.replace('$', '')}
                       credits={pack.credits}
+                      packName={pack.name}
                       userSub={user.sub}
-                      currentCredits={credits}
+                      userEmail={user.email || ''}
                       onSuccess={(c) => {
                         setCredits(prev => (prev ?? 0) + c);
                         setSuccessMsg(`🎉 Payment successful! ${c} credits added.`);

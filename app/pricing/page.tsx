@@ -188,8 +188,9 @@ export default function PricingPage() {
                       <PayPalButton
                         amount={pack.price.replace('$', '')}
                         credits={pack.credits}
+                        packName={pack.name}
                         userSub={user.sub}
-                        currentCredits={credits}
+                        userEmail={user.email || ''}
                         onSuccess={(c) => {
                           setCredits(prev => (prev ?? 0) + c);
                           setSuccessMsg(`🎉 Payment successful! ${c} credits added.`);
@@ -361,71 +362,6 @@ function PricingSections() {
                   }`}
                 >
                   Sign in to purchase
-                </Link>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Monthly Plans */}
-      <div>
-        <div className="flex items-center gap-3 mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Monthly Subscription</h2>
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Auto-renews</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl">
-          {monthlyPlans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`rounded-3xl p-8 flex flex-col relative ${
-                plan.popular
-                  ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white shadow-xl'
-                  : 'bg-white border border-gray-200 shadow-sm'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs px-3 py-1 rounded-full font-bold">
-                  ⭐ Best Value
-                </div>
-              )}
-              <div className={`text-sm font-semibold uppercase tracking-wide mb-2 ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>
-                {plan.name}
-              </div>
-              <div className={`text-4xl font-extrabold mb-1 ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
-                {plan.price}<span className={`text-base font-normal ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>{plan.period}</span>
-              </div>
-              <div className={`text-sm mb-1 ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>
-                {plan.credits} images/month · {plan.perImage}/image
-              </div>
-              <ul className={`space-y-2 text-sm my-6 flex-1 ${plan.popular ? 'text-purple-100' : 'text-gray-600'}`}>
-                {plan.features.map(f => <li key={f}>✓ {f}</li>)}
-              </ul>
-              {user && accessToken ? (
-                <div className="mt-2">
-                  <PayPalSubscriptionButton
-                    planId={plan.planId}
-                    planName={plan.name as 'Basic' | 'Pro'}
-                    creditsPerMonth={plan.credits}
-                    userSub={user.sub}
-                    accessToken={accessToken}
-                    hasActiveSubscription={hasActiveSubscription}
-                    onSuccess={() => {
-                      setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
-                      setHasActiveSubscription(true);
-                    }}
-                  />
-                </div>
-              ) : (
-                <Link
-                  href="/"
-                  className={`block w-full py-3 rounded-xl font-semibold text-sm text-center transition-colors ${
-                    plan.popular
-                      ? 'bg-white text-purple-600 hover:bg-purple-50'
-                      : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'
-                  }`}
-                >
-                  🔐 Sign in to subscribe
                 </Link>
               )}
             </div>

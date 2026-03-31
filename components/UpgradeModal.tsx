@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { getStoredAccessToken } from '@/components/GoogleAuthModal';
-import { addCredits } from '@/lib/userService';
+import { docRef, updateDoc, increment, createDoc, serverTimestamp } from '@/lib/firebase';
 
 interface UpgradeModalProps {
   onClose: () => void;
@@ -13,7 +13,6 @@ interface UpgradeModalProps {
 }
 
 const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
-const FIREBASE_PROJECT = 'bg-remover-f38d1';
 
 const creditPacks = [
   { name: 'Starter', price: '$4.99', credits: 10, perImage: '$0.50' },
@@ -21,10 +20,26 @@ const creditPacks = [
   { name: 'Pro Pack', price: '$29.99', credits: 80, perImage: '$0.37' },
 ];
 
-async function addCreditsFirestore(userSub: string, credits: number): Promise<void> {
+async function addCreditsFirestore(userSub: string, credits: number, packName: string, amount: number): Promise<void> {
   const accessToken = getStoredAccessToken();
   if (!accessToken) throw new Error('No access token');
-  await addCredits(userSub, credits, accessToken);
+  
+  // Update user credits
+  const userRef = docRef('users', userSub);
+  await updateDoc(userRef, {
+    credits: increment(credits),
+  }, accessToken);
+  
+  // Create ledger entry
+  await createDoc('creditLedger', {
+    uid: userSub,
+    type: 'purchase',
+    delta: credits,
+    balanceAfter: -1, // Will be updated by reading after
+    description: `购买 ${packName}（${credits} 积分）`,
+    refId: `purchase_${Date.now()}`,
+    createdAt: serverTimestamp(),
+  }, accessToken);
 }
 
 export default function UpgradeModal({ onClose, userSub, currentCredits, onCreditsAdded }: UpgradeModalProps) {
@@ -96,7 +111,7 @@ export default function UpgradeModal({ onClose, userSub, currentCredits, onCredi
                   const order = await actions.order!.capture();
                   if (order.status === 'COMPLETED') {
                     try {
-                      await addCreditsFirestore(userSub, selectedPack.credits);
+                      await addCreditsFirestore(userSub, selectedPack.credits, selectedPack.name, parseFloat(selectedPack.price.replace('$', '')));
                       onCreditsAdded(selectedPack.credits);
                       onClose();
                     } catch (e) {

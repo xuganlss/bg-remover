@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { activateSubscription } from '@/lib/userService';
+import { getStoredAccessToken } from '@/components/GoogleAuthModal';
 
 const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
 
@@ -55,12 +56,18 @@ export default function SubscriptionButton({
         onApprove={async (data) => {
           setLoading(true);
           try {
+            const accessToken = getStoredAccessToken();
+            if (!accessToken) {
+              console.error('No access token available');
+              return;
+            }
             await activateSubscription(
               userSub,
               userEmail,
               plan,
               data.subscriptionID!,
               planId,
+              accessToken,
             );
             onSuccess(plan, data.subscriptionID!);
           } finally {

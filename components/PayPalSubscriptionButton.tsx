@@ -27,6 +27,15 @@ export default function PayPalSubscriptionButton({
 }: PayPalSubscriptionButtonProps) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Debug logging
+  console.log('[PayPalSubscriptionButton]', { 
+    planName, 
+    planId, 
+    hasAccessToken: !!accessToken, 
+    hasActiveSubscription,
+    userSub 
+  });
 
   const handleApprove = async (data: any, actions: any) => {
     try {

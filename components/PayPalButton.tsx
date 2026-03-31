@@ -2,6 +2,7 @@
 
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { applyPurchasedCredits } from '@/lib/userService';
+import { getStoredAccessToken } from '@/components/GoogleAuthModal';
 
 const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
 
@@ -36,6 +37,11 @@ export default function PayPalButton({
         onApprove={async (_data, actions) => {
           const order = await actions.order!.capture();
           if (order.status === 'COMPLETED') {
+            const accessToken = getStoredAccessToken();
+            if (!accessToken) {
+              console.error('No access token available');
+              return;
+            }
             await applyPurchasedCredits(
               userSub,
               credits,
@@ -43,6 +49,7 @@ export default function PayPalButton({
               packName,
               parseFloat(amount),
               userEmail,
+              accessToken,
             );
             onSuccess(credits);
           }
