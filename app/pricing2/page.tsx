@@ -4,12 +4,15 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import PayPalButton from '@/components/PayPalButton';
 import PayPalSubscriptionButton from '@/components/PayPalSubscriptionButton';
 import FAQAccordion from '@/components/FAQAccordion';
 import SubscriptionManager from '@/components/SubscriptionManager';
 import CreditLedger from '@/components/CreditLedger';
 import { getStoredAccessToken } from '@/components/GoogleAuthModal';
+
+const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
 
 
 // One-time credit packs
@@ -50,9 +53,18 @@ export default function Pricing2Page() {
   const accessToken = getStoredAccessToken();
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      {/* Header */}
-      <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
+    <PayPalScriptProvider
+      options={{
+        clientId: PAYPAL_CLIENT_ID,
+        currency: 'USD',
+        vault: true,
+        intent: 'subscription',
+        components: 'buttons',
+      }}
+    >
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+        {/* Header */}
+        <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
@@ -255,6 +267,7 @@ export default function Pricing2Page() {
       <footer className="text-center py-8 text-sm text-gray-400 mt-8">
         <p suppressHydrationWarning>© {new Date().getFullYear()} BGRemover · Free AI-powered background removal</p>
       </footer>
-    </main>
+      </main>
+    </PayPalScriptProvider>
   );
 }

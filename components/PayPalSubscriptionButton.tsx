@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { PayPalButtons } from '@paypal/react-paypal-js';
 
 interface PayPalSubscriptionButtonProps {
   planId: string;
@@ -12,9 +12,6 @@ interface PayPalSubscriptionButtonProps {
   hasActiveSubscription?: boolean;
   onSuccess?: () => void;
 }
-
-// PayPal Client ID (Sandbox)
-const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
 
 export default function PayPalSubscriptionButton({ 
   planId, 
@@ -121,46 +118,37 @@ export default function PayPalSubscriptionButton({
           <div className="text-[9px] mt-1 text-gray-500">Plan ID: {planId}</div>
         </div>
       )}
-      <PayPalScriptProvider
-        options={{
-          clientId: PAYPAL_CLIENT_ID,
-          currency: 'USD',
-          vault: true,
-          intent: 'subscription',
-          components: 'buttons',
+      <PayPalButtons
+        key={`${planName}-${planId}`}
+        style={{
+          layout: 'vertical',
+          shape: 'rect',
+          color: 'gold',
+          label: 'subscribe',
+          height: 45,
         }}
-      >
-        <PayPalButtons
-          style={{
-            layout: 'vertical',
-            shape: 'rect',
-            color: 'gold',
-            label: 'subscribe',
-            height: 45,
-          }}
-          createSubscription={async (data, actions) => {
-            try {
-              console.log('Creating subscription with plan ID:', planId);
-              const subscriptionId = await actions.subscription.create({
-                plan_id: planId,
-              });
-              console.log('Subscription created:', subscriptionId);
-              return subscriptionId;
-            } catch (err) {
-              console.error('createSubscription failed:', err);
-              const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-              setError(`Failed to create subscription: ${errorMsg}\n\nPlan ID: ${planId}\n\nPlease verify:\n1. Plan ID is correct\n2. Plan is ACTIVE in PayPal\n3. Client ID matches environment (Sandbox/Live)`);
-              throw err;
-            }
-          }}
-          onApprove={handleApprove}
-          onError={(err) => {
-            console.error('PayPal subscription error:', err);
-            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
-            setError(`PayPal error: ${errorMsg}\n\nPlan ID: ${planId}`);
-          }}
-        />
-      </PayPalScriptProvider>
+        createSubscription={async (data, actions) => {
+          try {
+            console.log('Creating subscription with plan ID:', planId);
+            const subscriptionId = await actions.subscription.create({
+              plan_id: planId,
+            });
+            console.log('Subscription created:', subscriptionId);
+            return subscriptionId;
+          } catch (err) {
+            console.error('createSubscription failed:', err);
+            const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+            setError(`Failed to create subscription: ${errorMsg}\n\nPlan ID: ${planId}\n\nPlease verify:\n1. Plan ID is correct\n2. Plan is ACTIVE in PayPal\n3. Client ID matches environment (Sandbox/Live)`);
+            throw err;
+          }
+        }}
+        onApprove={handleApprove}
+        onError={(err) => {
+          console.error('PayPal subscription error:', err);
+          const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+          setError(`PayPal error: ${errorMsg}\n\nPlan ID: ${planId}`);
+        }}
+      />
     </div>
   );
 }

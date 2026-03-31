@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/useAuth';
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 import PayPalButton from '@/components/PayPalButton';
 import PayPalSubscriptionButton from '@/components/PayPalSubscriptionButton';
 import { getStoredAccessToken } from '@/components/GoogleAuthModal';
@@ -70,9 +71,18 @@ export default function PricingPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <PayPalScriptProvider
+      options={{
+        clientId: PAYPAL_CLIENT_ID,
+        currency: 'USD',
+        vault: true,
+        intent: 'subscription',
+        components: 'buttons',
+      }}
+    >
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+        <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
+          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -368,6 +378,7 @@ function PricingSections() {
           ))}
         </div>
       </div>
-    </div>
+      </main>
+    </PayPalScriptProvider>
   );
 }
