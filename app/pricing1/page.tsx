@@ -136,7 +136,10 @@ export default function Pricing1Page() {
                 onSubscriptionChange={() => {
                   setSuccessMsg('Subscription updated successfully!');
                 }}
-                onSubscriptionStatusChange={setHasActiveSubscription}
+                onSubscriptionStatusChange={(hasSub) => {
+                  console.log('[SubscriptionManager] hasActiveSubscription:', hasSub);
+                  setHasActiveSubscription(hasSub);
+                }}
               />
 
               {/* Credit Ledger */}
@@ -175,25 +178,18 @@ export default function Pricing1Page() {
                 </ul>
                 {user && accessToken ? (
                   <div className="mt-2">
-                    {plan.planId === 'YOUR_PRO_PLAN_ID_HERE' ? (
-                      <div className="w-full py-3 px-4 bg-gray-100 border border-gray-200 rounded-xl text-center">
-                        <div className="text-sm text-gray-500 font-medium">⏳ Coming Soon</div>
-                        <div className="text-xs text-gray-400 mt-1">Pro plan subscription will be available soon</div>
-                      </div>
-                    ) : (
-                      <PayPalSubscriptionButton
-                        planId={plan.planId}
-                        planName={plan.name as 'Basic' | 'Pro'}
-                        creditsPerMonth={plan.credits}
-                        userSub={user.sub}
-                        accessToken={accessToken}
-                        hasActiveSubscription={hasActiveSubscription}
-                        onSuccess={() => {
-                          setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
-                          setHasActiveSubscription(true);
-                        }}
-                      />
-                    )}
+                    <PayPalSubscriptionButton
+                      planId={plan.planId}
+                      planName={plan.name as 'Basic' | 'Pro'}
+                      creditsPerMonth={plan.credits}
+                      userSub={user.sub}
+                      accessToken={accessToken}
+                      hasActiveSubscription={hasActiveSubscription}
+                      onSuccess={() => {
+                        setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
+                        setHasActiveSubscription(true);
+                      }}
+                    />
                   </div>
                 ) : (
                   <Link href="/" className={`block w-full py-3 rounded-xl font-semibold text-sm text-center transition-colors ${plan.popular ? 'bg-white text-purple-600 hover:bg-purple-50' : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'}`}>
