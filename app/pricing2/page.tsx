@@ -223,7 +223,7 @@ export default function Pricing2Page() {
                       creditsPerMonth={plan.credits}
                       userSub={user.sub}
                       accessToken={accessToken}
-                      hasActiveSubscription={hasActiveSubscription}
+                      hasActiveSubscription={false}
                       onSuccess={() => {
                         setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
                         setHasActiveSubscription(true);

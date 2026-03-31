@@ -46,6 +46,7 @@ export default function Pricing1Page() {
   const { user, credits, setCredits, signOut } = useAuth();
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showLedger, setShowLedger] = useState(false);
+  // Allow multiple subscriptions - hasActiveSubscription is tracked but not used to block buttons
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const accessToken = getStoredAccessToken();
 
@@ -184,7 +185,7 @@ export default function Pricing1Page() {
                       creditsPerMonth={plan.credits}
                       userSub={user.sub}
                       accessToken={accessToken}
-                      hasActiveSubscription={hasActiveSubscription}
+                      hasActiveSubscription={false}
                       onSuccess={() => {
                         setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
                         setHasActiveSubscription(true);
