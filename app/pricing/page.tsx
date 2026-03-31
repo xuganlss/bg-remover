@@ -2,10 +2,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import PayPalButton from '@/components/PayPalButton';
-import SubscriptionButton from '@/components/SubscriptionButton';
+import PayPalSubscriptionButton from '@/components/PayPalSubscriptionButton';
+import { getStoredAccessToken } from '@/components/GoogleAuthModal';
+import FAQAccordion from '@/components/FAQAccordion';
 
 const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
 
@@ -45,7 +47,27 @@ export default function PricingPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'onetime' | 'subscription'>('onetime');
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const accessToken = getStoredAccessToken();
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  // Get or refresh access token when user logs in
+  useEffect(() => {
+    if (user) {
+      const token = getStoredAccessToken();
+      setAccessToken(token);
+      console.log('Access token status:', token ? '✅ Available' : '❌ Missing');
+    } else {
+      setAccessToken(null);
+    }
+  }, [user]);
+  useState(() => {
+    if (user) {
+      const token = getStoredAccessToken();
+      setAccessToken(token);
+      console.log('Access token status:', token ? '✅ Available' : '❌ Missing');
+    } else {
+      setAccessToken(null);
+    }
+  });
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
@@ -379,17 +401,18 @@ function PricingSections() {
               <ul className={`space-y-2 text-sm my-6 flex-1 ${plan.popular ? 'text-purple-100' : 'text-gray-600'}`}>
                 {plan.features.map(f => <li key={f}>✓ {f}</li>)}
               </ul>
-              {user ? (
+              {user && accessToken ? (
                 <div className="mt-2">
-                  <SubscriptionButton
-                    plan={plan.name.toLowerCase() as 'basic' | 'pro'}
+                  <PayPalSubscriptionButton
+                    planId={plan.planId}
+                    planName={plan.name as 'Basic' | 'Pro'}
+                    creditsPerMonth={plan.credits}
                     userSub={user.sub}
-                    userEmail={user.email}
-                    onSuccess={(p, subId) => {
-                      const added = p === 'pro' ? 60 : 25;
-                      setCredits(prev => (prev ?? 0) + added);
-                      setSuccessMsg(`🎉 Subscribed to ${p === 'pro' ? 'Pro' : 'Basic'}! ${added} credits added.`);
-                      console.log('Subscription ID:', subId);
+                    accessToken={accessToken}
+                    hasActiveSubscription={hasActiveSubscription}
+                    onSuccess={() => {
+                      setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
+                      setHasActiveSubscription(true);
                     }}
                   />
                 </div>
@@ -402,7 +425,7 @@ function PricingSections() {
                       : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'
                   }`}
                 >
-                  Sign in to subscribe
+                  🔐 Sign in to subscribe
                 </Link>
               )}
             </div>

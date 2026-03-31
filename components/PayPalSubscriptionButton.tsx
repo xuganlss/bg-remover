@@ -30,16 +30,27 @@ export default function PayPalSubscriptionButton({
 
   const handleApprove = async (data: any, actions: any) => {
     try {
+      // Verify access token exists
+      const token = accessToken || localStorage.getItem('bgremover_access_token');
+      
+      if (!token) {
+        setError('❌ No access token. Please sign out and sign in again to refresh your session.');
+        console.error('Firestore write failed: No access token');
+        return;
+      }
+
       // Get subscription details
       const details = await actions.subscription.get();
       const subscriptionId = data.subscriptionID;
+      
+      console.log('Saving subscription to Firestore:', { userId: userSub, planId, subscriptionId });
       
       // Save subscription to Firestore
       const res = await fetch('/api/subscription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId: userSub,
@@ -52,16 +63,19 @@ export default function PayPalSubscriptionButton({
       });
 
       if (res.ok) {
+        console.log('✅ Subscription saved successfully');
         setSuccess(true);
         setError(null);
         onSuccess?.();
       } else {
         const errData = await res.json();
+        console.error('Failed to save subscription:', errData);
         setError(errData.error || 'Failed to save subscription');
       }
     } catch (err) {
       console.error('Subscription error:', err);
-      setError('Failed to complete subscription');
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to complete subscription: ${errorMsg}`);
     }
   };
 
