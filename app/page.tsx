@@ -21,20 +21,17 @@ export default function Home() {
   const [bgColor, setBgColor] = useState('transparent');
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Google 登录状态
   const { user, credits, setCredits, signIn, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const handleImageSelect = useCallback(async (file: File, previewUrl: string) => {
-    // 未登录时拦截，弹出登录弹窗
     if (!user) {
       setShowAuthModal(true);
       return;
     }
 
-    // 检查额度
-    const { ok, credits: remainingCredits } = await checkCredits(user.sub);
+    const { ok, credits: remainingCredits } = await checkCredits(user.sub, localStorage.getItem('bgremover_access_token') || '');
     setCredits(remainingCredits);
     if (!ok) {
       setShowUpgradeModal(true);
@@ -50,15 +47,14 @@ export default function Home() {
     form.append('size', 'auto');
 
     try {
-      const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+      const res = await fetch('/api/remove-bg', {
         method: 'POST',
-        headers: { 'X-Api-Key': REMOVE_BG_API_KEY },
         body: form,
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        const msg = data?.errors?.[0]?.title || 'Background removal failed';
+        const msg = data?.error?.message || data?.errors?.[0]?.title || 'Background removal failed';
         throw new Error(msg);
       }
 
@@ -66,11 +62,14 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
       setStatus('done');
-      // 扣减一次额度
+
       if (user?.sub) {
-        consumeCredit(user.sub)
-          .then(() => setCredits(prev => prev !== null ? prev - 1 : null))
-          .catch(console.error);
+        const accessToken = localStorage.getItem('bgremover_access_token');
+        if (accessToken) {
+          consumeCredit(user.sub, accessToken)
+            .then(() => setCredits(prev => prev !== null ? prev - 1 : null))
+            .catch(console.error);
+        }
       }
     } catch (e: unknown) {
       setStatus('error');
@@ -97,7 +96,6 @@ export default function Home() {
       canvas.height = img.naturalHeight;
       const ctx = canvas.getContext('2d')!;
 
-      // 填充背景色（transparent 时跳过，保留透明）
       if (bgColor && bgColor !== 'transparent') {
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -118,26 +116,8 @@ export default function Home() {
     img.src = resultUrl;
   };
 
-  const handleSignOut = () => {
-    signOut();
-  };
-
   return (
     <>
-      {/* Google Identity Services SDK */}
-      <script
-        id="google-gsi-script"
-        src="https://accounts.google.com/gsi/client"
-        async
-        defer
-      />
-
-      {/* 升级弹窗 */}
-      {showUpgradeModal && (
-        <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
-      )}
-
-      {/* 登录弹窗 */}
       {showAuthModal && (
         <GoogleAuthModal
           onClose={() => setShowAuthModal(false)}
@@ -147,9 +127,16 @@ export default function Home() {
           }}
         />
       )}
+      {showUpgradeModal && user && (
+        <UpgradeModal
+          onClose={() => setShowUpgradeModal(false)}
+          userSub={user.sub}
+          currentCredits={credits}
+          onCreditsAdded={(c) => setCredits(prev => (prev ?? 0) + c)}
+        />
+      )}
 
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-        {/* Header */}
         <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -160,44 +147,32 @@ export default function Home() {
               </div>
               <span className="font-bold text-gray-800">BGRemover</span>
             </div>
-            <nav className="hidden sm:flex items-center gap-4 text-sm text-gray-500">
+            <nav className="flex items-center gap-4 text-sm text-gray-500">
               <Link href="/pricing" className="hover:text-purple-600 transition-colors font-medium">Pricing</Link>
-            </nav>
-
-            {/* 登录/用户信息区 */}
-            {user ? (
-              <div className="flex items-center gap-2">
-                {credits !== null && (
-                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
-                    {credits} credits left
-                  </span>
-                )}
-                <img
-                  src={user.picture}
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full border border-gray-200"
-                />
-                <span className="text-sm text-gray-700 hidden sm:block">{user.name}</span>
+              {user ? (
+                <div className="flex items-center gap-2">
+                  {credits !== null && (
+                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
+                      {credits} credits
+                    </span>
+                  )}
+                  <img src={user.picture} alt={user.name} className="w-7 h-7 rounded-full border border-gray-200" />
+                  <span className="text-gray-700 block max-w-[150px] truncate">{user.name}</span>
+                  <button onClick={signOut} className="text-xs text-red-500 hover:text-red-700 font-medium ml-2">Sign out</button>
+                </div>
+              ) : (
                 <button
-                  onClick={handleSignOut}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                  onClick={() => setShowAuthModal(true)}
+                  className="text-sm font-medium text-purple-600 hover:text-purple-700 px-3 py-1.5 rounded-lg hover:bg-purple-50"
                 >
-                  Sign out
+                  Sign in
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-purple-50"
-              >
-                Sign in
-              </button>
-            )}
+              )}
+            </nav>
           </div>
         </header>
 
         <div className="max-w-5xl mx-auto px-4 py-12">
-          {/* Hero */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 text-sm px-3 py-1 rounded-full mb-4 font-medium">
               <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
@@ -211,28 +186,13 @@ export default function Home() {
             </h1>
             <p className="text-lg text-gray-600 max-w-xl mx-auto">
               Upload any photo — AI removes the background in seconds.
-              No watermarks. Download as transparent PNG.
+              {user ? ` You have ${credits ?? 0} credits left.` : ' Sign in to get 3 free credits!'}
             </p>
           </div>
 
-          {/* Main Card */}
           <div className="bg-white rounded-3xl shadow-xl shadow-purple-100 p-6 sm:p-10">
             {status === 'idle' && (
-              <>
-                <ImageUploader onImageSelect={handleImageSelect} />
-                {/* 未登录提示 */}
-                {!user && (
-                  <p className="text-center text-sm text-gray-400 mt-4">
-                    <button
-                      onClick={() => setShowAuthModal(true)}
-                      className="text-purple-600 font-medium hover:underline"
-                    >
-                      Sign in
-                    </button>
-                    {' '}to start removing backgrounds
-                  </p>
-                )}
-              </>
+              <ImageUploader onImageSelect={handleImageSelect} />
             )}
 
             {status === 'processing' && (
@@ -290,7 +250,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Features */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
             {[
               { icon: '⚡', title: 'Instant Results', desc: 'AI processes your image in 2–5 seconds' },
@@ -304,19 +263,8 @@ export default function Home() {
               </div>
             ))}
           </div>
-
-          {/* SEO Content */}
-          <section className="mt-16 max-w-none">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">How to Remove Image Background</h2>
-            <ol className="space-y-2 text-gray-600">
-              <li><strong>1. Upload</strong> — Drag & drop or click to upload your JPG, PNG, or WebP image.</li>
-              <li><strong>2. Wait</strong> — Our AI automatically detects and removes the background.</li>
-              <li><strong>3. Download</strong> — Save your image as a transparent PNG or choose a background color.</li>
-            </ol>
-          </section>
         </div>
 
-        {/* Footer */}
         <footer className="text-center py-8 text-sm text-gray-400 mt-8">
           <p suppressHydrationWarning>© {new Date().getFullYear()} BGRemover · Free AI-powered background removal</p>
         </footer>

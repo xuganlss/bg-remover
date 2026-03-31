@@ -24,7 +24,7 @@ const subscriptionPlans = [
     perImage: '$0.40', 
     features: ['25 credits/month', 'HD output', 'No watermarks', 'Email support', 'Rollover unused credits'], 
     popular: false,
-    planId: 'P-2U716130Y42076319NHFBYXY'
+    planId: 'P-2U716130Y42076319NHFBYXY' // TODO: Replace with valid PayPal plan ID
   },
   { 
     name: 'Pro', 
@@ -34,9 +34,12 @@ const subscriptionPlans = [
     perImage: '$0.33', 
     features: ['60 credits/month', 'HD output', 'No watermarks', 'Priority support', 'API access', 'Rollover unused credits'], 
     popular: true,
-    planId: 'P-4JS56205PU1505010NHFB2CY'
+    planId: 'P-4JS56205PU1505010NHFB2CY' // TODO: Replace with valid PayPal plan ID
   },
 ];
+
+// Set to true to enable subscription payments (requires valid PayPal plan IDs)
+const SUBSCRIPTION_ENABLED = false;
 
 export default function PricingPage() {
   const { user, credits, setCredits, signOut } = useAuth();
@@ -123,14 +126,16 @@ export default function PricingPage() {
                 💳 One-Time Purchase
               </button>
               <button
-                onClick={() => setActiveTab('subscription')}
+                onClick={() => SUBSCRIPTION_ENABLED && setActiveTab('subscription')}
                 className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
                   activeTab === 'subscription'
                     ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md'
                     : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                } ${!SUBSCRIPTION_ENABLED ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={!SUBSCRIPTION_ENABLED}
+                title={!SUBSCRIPTION_ENABLED ? 'Coming soon' : undefined}
               >
-                🔄 Monthly Subscription
+                🔄 Monthly Subscription {!SUBSCRIPTION_ENABLED && '(Coming Soon)'}
               </button>
             </div>
           </div>
@@ -184,49 +189,67 @@ export default function PricingPage() {
         {/* Subscription Plans Tab */}
         {activeTab === 'subscription' && (
           <div className="mb-12">
-            <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Subscription Plans</h2>
-              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">Best Value</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {subscriptionPlans.map((plan) => (
-                <div key={plan.name} className={`rounded-3xl p-8 flex flex-col relative ${plan.popular ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white shadow-xl' : 'bg-white border border-gray-200 shadow-sm'}`}>
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs px-3 py-1 rounded-full font-bold">
-                      ⭐ Most Popular
-                    </div>
-                  )}
-                  <div className={`text-sm font-semibold uppercase tracking-wide mb-2 ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>{plan.name}</div>
-                  <div className={`text-4xl font-extrabold mb-1 ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
-                    {plan.price}<span className={`text-lg font-medium ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>{plan.period}</span>
-                  </div>
-                  <div className={`text-sm mb-1 ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>{plan.credits} credits · {plan.perImage}/image</div>
-                  <ul className={`space-y-2 text-sm my-6 flex-1 ${plan.popular ? 'text-purple-100' : 'text-gray-600'}`}>
-                    {plan.features.map(f => <li key={f}>✓ {f}</li>)}
-                  </ul>
-                  {user && accessToken ? (
-                    <div className="mt-2">
-                      <PayPalSubscriptionButton
-                        planId={plan.planId}
-                        planName={plan.name as 'Basic' | 'Pro'}
-                        creditsPerMonth={plan.credits}
-                        userSub={user.sub}
-                        accessToken={accessToken}
-                        hasActiveSubscription={hasActiveSubscription}
-                        onSuccess={() => {
-                          setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
-                          setHasActiveSubscription(true);
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <Link href="/" className={`block w-full py-3 rounded-xl font-semibold text-sm text-center transition-colors ${plan.popular ? 'bg-white text-purple-600 hover:bg-purple-50' : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'}`}>
-                      🔐 Sign in to subscribe
-                    </Link>
-                  )}
+            {SUBSCRIPTION_ENABLED ? (
+              <>
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">Subscription Plans</h2>
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">Best Value</span>
                 </div>
-              ))}
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {subscriptionPlans.map((plan) => (
+                    <div key={plan.name} className={`rounded-3xl p-8 flex flex-col relative ${plan.popular ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white shadow-xl' : 'bg-white border border-gray-200 shadow-sm'}`}>
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs px-3 py-1 rounded-full font-bold">
+                          ⭐ Most Popular
+                        </div>
+                      )}
+                      <div className={`text-sm font-semibold uppercase tracking-wide mb-2 ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>{plan.name}</div>
+                      <div className={`text-4xl font-extrabold mb-1 ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
+                        {plan.price}<span className={`text-lg font-medium ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>{plan.period}</span>
+                      </div>
+                      <div className={`text-sm mb-1 ${plan.popular ? 'text-purple-200' : 'text-gray-400'}`}>{plan.credits} credits · {plan.perImage}/image</div>
+                      <ul className={`space-y-2 text-sm my-6 flex-1 ${plan.popular ? 'text-purple-100' : 'text-gray-600'}`}>
+                        {plan.features.map(f => <li key={f}>✓ {f}</li>)}
+                      </ul>
+                      {user && accessToken ? (
+                        <div className="mt-2">
+                          <PayPalSubscriptionButton
+                            planId={plan.planId}
+                            planName={plan.name as 'Basic' | 'Pro'}
+                            creditsPerMonth={plan.credits}
+                            userSub={user.sub}
+                            accessToken={accessToken}
+                            hasActiveSubscription={hasActiveSubscription}
+                            onSuccess={() => {
+                              setSuccessMsg(`${plan.credits} credits added to your account. New subscription: ${plan.name} plan.`);
+                              setHasActiveSubscription(true);
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <Link href="/" className={`block w-full py-3 rounded-xl font-semibold text-sm text-center transition-colors ${plan.popular ? 'bg-white text-purple-600 hover:bg-purple-50' : 'border-2 border-purple-200 text-purple-600 hover:bg-purple-50'}`}>
+                          🔐 Sign in to subscribe
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-6">🚧</div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">Subscription Plans Coming Soon</h2>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  We're setting up monthly subscription plans. In the meantime, you can purchase one-time credit packs above.
+                </p>
+                <button
+                  onClick={() => setActiveTab('onetime')}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity"
+                >
+                  View One-Time Packs →
+                </button>
+              </div>
+            )}
           </div>
         )}
 
