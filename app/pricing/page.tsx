@@ -24,7 +24,7 @@ const subscriptionPlans = [
     perImage: '$0.40', 
     features: ['25 credits/month', 'HD output', 'No watermarks', 'Email support', 'Rollover unused credits'], 
     popular: false,
-    planId: 'P-2U716130Y42076319NHFBYXY' // TODO: Replace with valid PayPal plan ID
+    planId: 'P-2U716130Y42076319NHFBYXY'
   },
   { 
     name: 'Pro', 
@@ -34,12 +34,11 @@ const subscriptionPlans = [
     perImage: '$0.33', 
     features: ['60 credits/month', 'HD output', 'No watermarks', 'Priority support', 'API access', 'Rollover unused credits'], 
     popular: true,
-    planId: 'P-4JS56205PU1505010NHFB2CY' // TODO: Replace with valid PayPal plan ID
+    planId: 'P-4JS56205PU1505010NHFB2CY'
   },
 ];
 
-// Set to true to enable subscription payments (requires valid PayPal plan IDs)
-const SUBSCRIPTION_ENABLED = false;
+const SUBSCRIPTION_ENABLED = true;
 
 export default function PricingPage() {
   const { user, credits, setCredits, signOut } = useAuth();

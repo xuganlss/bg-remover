@@ -1,0 +1,143 @@
+'use client';
+
+import { useState } from 'react';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+
+interface PayPalSubscriptionButtonProps {
+  planId: string;
+  planName: 'Basic' | 'Pro';
+  creditsPerMonth: number;
+  userSub: string;
+  accessToken: string;
+  hasActiveSubscription?: boolean;
+  onSuccess?: () => void;
+}
+
+// Use sandbox Client ID (same as PayPalButton component)
+const PAYPAL_CLIENT_ID = 'AcAPfiyzUv1hoJvvkAnBQJ8mGLOySzXm46KYu3lalmatqbPye-FsxEq1kVt-2YZRUBvhV65UCfdlWRI5';
+
+export default function PayPalSubscriptionButton({ 
+  planId, 
+  planName, 
+  creditsPerMonth, 
+  userSub, 
+  accessToken,
+  hasActiveSubscription,
+  onSuccess 
+}: PayPalSubscriptionButtonProps) {
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleApprove = async (data: any, actions: any) => {
+    try {
+      // Get subscription details
+      const details = await actions.subscription.get();
+      const subscriptionId = data.subscriptionID;
+      
+      // Save subscription to Firestore
+      const res = await fetch('/api/subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          userId: userSub,
+          planId,
+          planName,
+          paypalSubscriptionId: subscriptionId,
+          status: 'ACTIVE',
+          creditsPerMonth,
+        }),
+      });
+
+      if (res.ok) {
+        setSuccess(true);
+        setError(null);
+        onSuccess?.();
+      } else {
+        const errData = await res.json();
+        setError(errData.error || 'Failed to save subscription');
+      }
+    } catch (err) {
+      console.error('Subscription error:', err);
+      setError('Failed to complete subscription');
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="w-full py-3 px-4 bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 rounded-xl text-center">
+        <div className="flex items-center justify-center gap-2">
+          <span className="text-xl">🎉</span>
+          <div>
+            <div className="font-bold text-green-800 text-sm">Payment Successful!</div>
+            <div className="text-green-700 text-xs">{creditsPerMonth} credits added to your account</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show disabled state if user already has active subscription
+  if (hasActiveSubscription) {
+    return (
+      <div className="w-full py-3 px-4 bg-gray-100 border border-gray-200 rounded-xl text-center cursor-not-allowed">
+        <div className="text-sm text-gray-500 font-medium">✓ Active Subscription</div>
+        <div className="text-xs text-gray-400 mt-1">Manage in My Account section</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full">
+      {error && (
+        <div className="mb-2 p-2 bg-red-50 border border-red-200 text-red-600 rounded text-xs text-center">
+          <div className="font-semibold mb-1">⚠️ Error</div>
+          <div className="text-[10px] break-all">{error}</div>
+          <div className="text-[9px] mt-1 text-gray-500">Plan ID: {planId}</div>
+        </div>
+      )}
+      <PayPalScriptProvider
+        options={{
+          clientId: PAYPAL_CLIENT_ID,
+          currency: 'USD',
+          vault: true,
+          intent: 'subscription',
+          components: 'buttons',
+        }}
+      >
+        <PayPalButtons
+          style={{
+            layout: 'vertical',
+            shape: 'rect',
+            color: 'gold',
+            label: 'subscribe',
+            height: 45,
+          }}
+          createSubscription={async (data, actions) => {
+            try {
+              console.log('Creating subscription with plan ID:', planId);
+              const subscriptionId = await actions.subscription.create({
+                plan_id: planId,
+              });
+              console.log('Subscription created:', subscriptionId);
+              return subscriptionId;
+            } catch (err) {
+              console.error('createSubscription failed:', err);
+              const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+              setError(`Failed to create subscription: ${errorMsg}\n\nPlan ID: ${planId}\n\nPlease verify:\n1. Plan ID is correct\n2. Plan is ACTIVE in PayPal\n3. Client ID matches environment (Sandbox/Live)`);
+              throw err;
+            }
+          }}
+          onApprove={handleApprove}
+          onError={(err) => {
+            console.error('PayPal subscription error:', err);
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            setError(`PayPal error: ${errorMsg}\n\nPlan ID: ${planId}`);
+          }}
+        />
+      </PayPalScriptProvider>
+    </div>
+  );
+}
