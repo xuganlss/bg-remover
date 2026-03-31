@@ -28,7 +28,7 @@ const subscriptionPlans = [
     perImage: '$0.40', 
     features: ['25 credits/month', 'HD output', 'No watermarks', 'Email support', 'Rollover unused credits'], 
     popular: false,
-    planId: 'P-2CN37042J7272960HNHDUIBI' // Basic Plan ID
+    planId: 'P-2U716130Y42076319NHFBYXY' // Basic Plan ID
   },
   { 
     name: 'Pro', 
@@ -38,7 +38,7 @@ const subscriptionPlans = [
     perImage: '$0.33', 
     features: ['60 credits/month', 'HD output', 'No watermarks', 'Priority support', 'API access', 'Rollover unused credits'], 
     popular: true,
-    planId: 'P-18582952CE534212TNHDUIWQ' // Pro Plan ID
+    planId: 'P-4JS56205PU1505010NHFB2CY' // Pro Plan ID
   },
 ];
 

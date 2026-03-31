@@ -10,8 +10,8 @@ const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilR
 // PayPal Subscription Plan IDs (Sandbox)
 // 切换生产时替换为正式 Plan ID
 export const PAYPAL_PLAN_IDS = {
-  basic: process.env.NEXT_PUBLIC_PAYPAL_PLAN_BASIC ?? 'P-2CN37042J7272960HNHDUIBI',
-  pro: process.env.NEXT_PUBLIC_PAYPAL_PLAN_PRO ?? 'P-18582952CE534212TNHDUIWQ',
+  basic: process.env.NEXT_PUBLIC_PAYPAL_PLAN_BASIC ?? 'P-2U716130Y42076319NHFBYXY',
+  pro: process.env.NEXT_PUBLIC_PAYPAL_PLAN_PRO ?? 'P-4JS56205PU1505010NHFB2CY',
 };
 
 interface SubscriptionButtonProps {
