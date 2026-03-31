@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/useAuth';
 import PayPalButton from '@/components/PayPalButton';
 import SubscriptionButton from '@/components/SubscriptionButton';
 
-const PAYPAL_CLIENT_ID = 'AcAPfiyzUv1hoJvvkAnBQJ8mGLOySzXm46KYu3lalmatqbPye-FsxEq1kVt-2YZRUBvhV65UCfdlWRI5';
+const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
 
 const creditPacks = [
   { name: 'Starter', price: '$4.99', credits: 10, perImage: '$0.50', features: ['10 background removals', 'HD output', 'No watermarks', 'Credits never expire'], popular: false },

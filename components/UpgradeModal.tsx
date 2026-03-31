@@ -12,7 +12,7 @@ interface UpgradeModalProps {
   onCreditsAdded: (newCredits: number) => void;
 }
 
-const PAYPAL_CLIENT_ID = 'AcAPfiyzUv1hoJvvkAnBQJ8mGLOySzXm46KYu3lalmatqbPye-FsxEq1kVt-2YZRUBvhV65UCfdlWRI5';
+const PAYPAL_CLIENT_ID = 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg';
 const FIREBASE_PROJECT = 'bg-remover-f38d1';
 
 const creditPacks = [
