@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 interface PayPalSubscriptionButtonProps {
@@ -25,13 +25,17 @@ export default function PayPalSubscriptionButton({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Stable key for PayPal buttons - only changes when plan changes
+  const buttonKey = useMemo(() => `${planName}-${planId}`, [planName, planId]);
+  
   // Debug logging
   console.log('[PayPalSubscriptionButton]', { 
     planName, 
     planId, 
     hasAccessToken: !!accessToken, 
     hasActiveSubscription,
-    userSub 
+    userSub,
+    buttonKey
   });
 
   const handleApprove = async (data: any, actions: any) => {
@@ -128,7 +132,7 @@ export default function PayPalSubscriptionButton({
         }}
       >
         <PayPalButtons
-          key={`${planName}-${planId}-${Date.now()}`}
+          key={buttonKey}
           style={{
             layout: 'vertical',
             shape: 'rect',
