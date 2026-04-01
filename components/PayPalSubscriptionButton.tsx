@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PayPalButtons } from '@paypal/react-paypal-js';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 interface PayPalSubscriptionButtonProps {
   planId: string;
@@ -118,15 +118,24 @@ export default function PayPalSubscriptionButton({
           <div className="text-[9px] mt-1 text-gray-500">Plan ID: {planId}</div>
         </div>
       )}
-      <PayPalButtons
-        key={`${planName}-${planId}`}
-        style={{
-          layout: 'vertical',
-          shape: 'rect',
-          color: 'gold',
-          label: 'subscribe',
-          height: 45,
+      <PayPalScriptProvider
+        options={{
+          clientId: 'ARyamRYAQyWcWcgoCTKaVkphMWOaYvedC_oxliSAOe3lBc4FYZVilRf7Jq61iYQcamSqBfjP1SlKU7mg',
+          currency: 'USD',
+          vault: true,
+          intent: 'subscription',
+          components: 'buttons',
         }}
+      >
+        <PayPalButtons
+          key={`${planName}-${planId}-${Date.now()}`}
+          style={{
+            layout: 'vertical',
+            shape: 'rect',
+            color: 'gold',
+            label: 'subscribe',
+            height: 45,
+          }}
         createSubscription={async (data, actions) => {
           try {
             console.log('Creating subscription with plan ID:', planId);
@@ -149,6 +158,7 @@ export default function PayPalSubscriptionButton({
           setError(`PayPal error: ${errorMsg}\n\nPlan ID: ${planId}`);
         }}
       />
+      </PayPalScriptProvider>
     </div>
   );
 }
