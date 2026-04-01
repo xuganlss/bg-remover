@@ -20,8 +20,16 @@ export default function PayPalButton({
   amount, credits, packName, userSub, userEmail, onSuccess, onError,
 }: PayPalButtonProps) {
   return (
-    <PayPalButtons
-      style={{ layout: 'vertical', shape: 'rect', color: 'gold', label: 'pay' }}
+    <PayPalScriptProvider
+      options={{
+        clientId: PAYPAL_CLIENT_ID,
+        currency: 'USD',
+        intent: 'capture',
+        components: 'buttons',
+      }}
+    >
+      <PayPalButtons
+        style={{ layout: 'vertical', shape: 'rect', color: 'gold', label: 'pay' }}
         createOrder={(_data, actions) => {
           return actions.order.create({
             intent: 'CAPTURE',
@@ -58,5 +66,6 @@ export default function PayPalButton({
           onError?.();
         }}
       />
+    </PayPalScriptProvider>
   );
 }
