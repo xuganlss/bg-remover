@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { docRef, getDoc, updateDoc, serverTimestamp, createDoc } from '@/lib/firebase';
 
+// Add CORS headers
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
+
+// Handle preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, { headers: corsHeaders() });
+}
+
 // Get user's active subscription
 export async function GET(request: NextRequest) {
   try {
@@ -36,11 +50,15 @@ export async function GET(request: NextRequest) {
 // Create subscription
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Subscription API] POST request received');
+    
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('[Subscription API] Unauthorized - no auth header');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders() });
     }
     const accessToken = authHeader.substring(7);
+    console.log('[Subscription API] Auth token present');
     
     const body = await request.json();
     const { userId, planId, planName, paypalSubscriptionId, status, creditsPerMonth } = body;
@@ -84,14 +102,15 @@ export async function POST(request: NextRequest) {
       createdAt: serverTimestamp(),
     }, accessToken);
     
+    console.log('[Subscription API] Subscription created successfully:', subscriptionId);
     return NextResponse.json({ 
       success: true, 
       subscriptionId,
       message: `Successfully subscribed to ${planName} plan with ${creditsPerMonth} credits` 
-    });
+    }, { headers: corsHeaders() });
   } catch (error) {
-    console.error('Error creating subscription:', error);
-    return NextResponse.json({ error: 'Failed to create subscription' }, { status: 500 });
+    console.error('[Subscription API] Error creating subscription:', error);
+    return NextResponse.json({ error: 'Failed to create subscription', details: String(error) }, { status: 500, headers: corsHeaders() });
   }
 }
 
