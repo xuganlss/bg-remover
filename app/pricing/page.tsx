@@ -71,16 +71,7 @@ export default function PricingPage() {
   });
 
   return (
-    <PayPalScriptProvider
-      options={{
-        clientId: PAYPAL_CLIENT_ID,
-        currency: 'USD',
-        vault: true,
-        intent: 'subscription',
-        components: 'buttons',
-      }}
-    >
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
         <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -301,7 +292,6 @@ export default function PricingPage() {
         <p suppressHydrationWarning>© {new Date().getFullYear()} BGRemover · Free AI-powered background removal</p>
       </footer>
       </main>
-    </PayPalScriptProvider>
   );
 }
 
