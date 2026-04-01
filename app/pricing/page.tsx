@@ -49,6 +49,7 @@ export default function PricingPage() {
   const [activeTab, setActiveTab] = useState<'onetime' | 'subscription'>('onetime');
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [renderKey, setRenderKey] = useState(0);
 
   // Get or refresh access token when user logs in
   useEffect(() => {
@@ -60,15 +61,12 @@ export default function PricingPage() {
       setAccessToken(null);
     }
   }, [user]);
-  useState(() => {
-    if (user) {
-      const token = getStoredAccessToken();
-      setAccessToken(token);
-      console.log('Access token status:', token ? '✅ Available' : '❌ Missing');
-    } else {
-      setAccessToken(null);
-    }
-  });
+
+  // Force re-render PayPal buttons when tab changes
+  useEffect(() => {
+    setRenderKey(prev => prev + 1);
+    console.log('[PricingPage] Tab changed, forcing re-render:', activeTab);
+  }, [activeTab]);
 
   return (
     <PayPalScriptProvider
@@ -80,7 +78,7 @@ export default function PricingPage() {
         components: 'buttons',
       }}
     >
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50" key={renderKey}>
         <header className="border-b border-white/60 bg-white/70 backdrop-blur-sm sticky top-0 z-10">
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
