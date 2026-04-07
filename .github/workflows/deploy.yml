@@ -22,7 +22,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build && npm run cf-build
+        run: npx next build && npx opennextjs-cloudflare build
         env:
           NEXT_PUBLIC_PAYPAL_PLAN_BASIC: P-2CN37042J7272960HNHDUIBI
           NEXT_PUBLIC_PAYPAL_PLAN_PRO: P-18582952CE534212TNHDUIWQ
